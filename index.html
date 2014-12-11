@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Shopping Cart App</title>
+	<style>
+
+
+#main {
+	font-family: arial;
+	width: 890px;
+	margin: 0px auto;
+}
+
+header {
+	height: 40px;
+	background: #66ccff;
+	padding: 10px;
+	color: white;
+	margin-bottom: 10px;
+	text-align: center;
+	position: relative;
+}
+
+h1 {
+	margin: 0px;
+}
+
+#logo {
+	float: left;
+}
+
+#category-selection {
+	float:left;
+	width: 200px;
+	font-weight: bold;
+	font-size: 1.0em;
+	margin-right: 10px;
+}
+
+#products {
+	float:left;
+	width: 660px;
+}
+
+
+.categories {
+	background: lightgray;
+	margin: 2px;
+	padding: 10px 0px 10px 10px;
+	cursor: pointer;
+}
+
+.activeCategory {
+	background: #53c6fe;
+}
+
+.items{
+	width: 200px;
+	height: 300px;
+	margin: 10px;
+	float:left;
+	position: relative;
+	box-shadow: 3px 3px 4px #a0a0a0;
+}
+
+.item-name {
+	text-align: center;
+	font-size: 14px;
+	margin-top: 5px;
+}
+
+.item-price {
+	color: red;
+	font-size: 12px;
+	font-weight: bold;
+	text-align: center;
+	margin-top: 5px;
+}
+
+.add-cart {
+	margin: 10px 10px 0px 25px;
+	background: lightgray;
+	width: 150px;
+	position: relative;
+	height: 30px;
+	cursor: pointer;
+}
+
+.add-cart img {
+	width: 20px;
+	padding-left: 10px;
+	padding-right: 5px;
+	padding-top:5px;
+	padding-bottom:1px;
+}
+
+.add-cart span {
+	display: inline-block;
+	color: white;
+	font-weight: bold;
+	position: absolute;
+	right:13px;
+	top: 5px;
+}
+
+.checkout {
+	float: right;
+	position: relative;
+	width: 165px;
+	margin-top: -7px;
+	padding: 0px 10px;
+	cursor: pointer;
+
+}
+
+.checkout img{
+	width: 50px;
+}
+
+.checkout #counter{
+	top: 0px;
+	left: 35px;
+	position: absolute;
+	display: inline-block;
+	width: 25px;
+	color:red;
+}
+
+.not-exceed {
+	font-size: 19px;
+}
+
+.exceed {
+	font-size: 15px;
+}
+
+.checkout #checkout-label{
+	font-size: 20px;
+	padding-left: 5px;
+	font-weight: bold;
+}
+
+.cart-icon {
+	background: gray;
+	width: 40px;
+}
+
+.alert-danger {
+	background: #ff6866;
+	padding: 15px 15px;
+	border: solid red 2px;
+	border-radius: 15px;
+}
+
+
+	</style>
+	<script src="libs/angular.min.js"></script>
+	<script src="assets/js/angular-route.min.js"></script>
+</head>
+<body ng-app="shoppingApp">
+	<div id="main" ng-controller="ProductListController">
+		<header>
+			<div id="logo">
+				<h1>My Store</h1>
+			</div>
+			<div class="checkout">
+				<img src="assets/icons/emptycart.png" alt="">
+				<span id="counter" ng-class="getItemCountClass()">{{(cart.length > 99) ? "99+" : cart.length}}</span>
+				<span id="checkout-label">Checkout</span>
+			</div>
+		</header>
+		<div id="category-selection">
+			<div class="categories" ng-class="getCategoryClass(row)" ng-repeat="row in model | orderBy:'Category' | unique:'Category'" ng-click="selectedCategory(row)">
+				<span>{{row}}</span>
+			</div>
+		</div>
+		<div id="products">
+			<div class="items" ng-repeat="row in model | filter:categoryFilterFn | limitTo:9">
+				<img ng-src="{{row.Image_Link}}">
+				<div class="item-name">{{row.Product_Name}}</div>
+				<div class="item-price">{{row.Price | currency}}</div>
+				<div class="add-cart" ng-click="addItem(row)">
+					<div class="cart-icon"><img src="assets/icons/cart.png"></div>
+					<span>Add to Cart</span>
+				</div>
+			</div>
+		</div>
+		<div class="alert-danger" ng-show="data.error">{{data.status}} Error! Request cannot be made. <b>Click <a href="{{mainpage}}">here</a> to try again</b></div>
+	</div>
+	<script>
+angular.module("shoppingApp",[])
+	.constant("jsonDataPage","http://localhost/sqltest.php")
+	.constant("mainpage","/index.html")
+	.controller("ProductListController",function($scope,$http, $filter, mainpage, jsonDataPage){
+
+		$scope.model = null;
+		$scope.cart = [];
+		$scope.data = {};
+		$scope.mainpage = mainpage;
+		var selectedCategory = null;
+		
+		$http.get(jsonDataPage)
+			.success(function(data){
+				$scope.model = data;
+			})
+			.error(function(error, status){
+				$scope.data.error = error;
+				$scope.data.status = status;
+			});
+
+		$scope.getItemCountClass = function(){
+			return ($scope.cart.length > 99) ? "exceed" : "not-exceed";
+		}	
+
+		$scope.categoryFilterFn = function(product){
+			return selectedCategory == null || product.Category == selectedCategory;
+		};
+
+		$scope.getCategoryClass = function(category) {
+			return selectedCategory == category ? "activeCategory" : "";
+		}
+
+		$scope.selectedCategory = function(newCategory) {
+			selectedCategory = newCategory;
+		};
+
+		//adding items in the cart
+		$scope.addItem = function(item){
+			$scope.cart.push(item);
+		}
+
+	})
+	.filter("unique", function(){
+		return function(data, propertyName) {
+			if(angular.isArray(data) && angular.isString(propertyName)){
+				var results = [];
+				var keys = {};
+				for(var i = 0; i < data.length; i++) {
+					var val = data[i][propertyName];
+					if(angular.isUndefined(keys[val])){
+						keys[val] = true;
+						results.push(val);
+					}
+				}
+				return results;
+			}
+			else {
+				return data;
+			}
+		}
+	})	
+	</script>
+</body>
+</html>
