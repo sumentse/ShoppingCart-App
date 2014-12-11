@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Shopping Cart App</title>
+	<base href="/AngularJS%20Apps/ShoppingCart%20App/">
 	<style>
 
 
@@ -159,7 +160,7 @@ h1 {
 	<script src="assets/js/angular-route.min.js"></script>
 </head>
 <body ng-app="shoppingApp">
-	<div id="main" ng-controller="ProductListController">
+	<div id="main" ng-controller="MasterController">
 		<header>
 			<div id="logo">
 				<h1>My Store</h1>
@@ -167,39 +168,49 @@ h1 {
 			<div class="checkout">
 				<img src="assets/icons/emptycart.png" alt="">
 				<span id="counter" ng-class="getItemCountClass()">{{(cart.length > 99) ? "99+" : cart.length}}</span>
-				<span id="checkout-label">Checkout</span>
+				<span id="checkout-label"><a href="http://localhost/AngularJS%20Apps/ShoppingCart%20App/index.html#/checkout">Checkout</a></span>
 			</div>
-		</header>
-		<div id="category-selection">
-			<div class="categories" ng-class="getCategoryClass(row)" ng-repeat="row in model | orderBy:'Category' | unique:'Category'" ng-click="selectedCategory(row)">
-				<span>{{row}}</span>
-			</div>
-		</div>
-		<div id="products">
-			<div class="items" ng-repeat="row in model | filter:categoryFilterFn | limitTo:9">
-				<img ng-src="{{row.Image_Link}}">
-				<div class="item-name">{{row.Product_Name}}</div>
-				<div class="item-price">{{row.Price | currency}}</div>
-				<div class="add-cart" ng-click="addItem(row)">
-					<div class="cart-icon"><img src="assets/icons/cart.png"></div>
-					<span>Add to Cart</span>
-				</div>
-			</div>
-		</div>
-		<div class="alert-danger" ng-show="data.error">{{data.status}} Error! Request cannot be made. <b>Click <a href="{{mainpage}}">here</a> to try again</b></div>
+		</header>	
+		<div class="alert-danger" ng-show="data.error">{{data.status}} Error! Request cannot be made. <b>Click <a href="{{mainpage}}">here</a> to try again</b></div>	
+		<ng-view />
 	</div>
 	<script>
-angular.module("shoppingApp",[])
+angular.module("shoppingApp",["ngRoute"])
+	.config(function($routeProvider, $locationProvider){
+//will need to get rid of the routeprovider later on and the base on the header
+		
+		$routeProvider.when("/products",{
+			templateUrl:"/AngularJS%20Apps/ShoppingCart%20App/views/products.html",
+			controller:"ProductListController"
+		})		
+
+		$routeProvider.when("/checkout",{
+			templateUrl: "/AngularJS%20Apps/ShoppingCart%20App/views/checkout.html",
+			controller:"ProductListController"
+		});
+
+		$routeProvider.otherwise({
+			templateUrl:"/AngularJS%20Apps/ShoppingCart%20App/views/products.html",
+			controller:"ProductListController"
+		});
+
+		$locationProvider.html5Mode(false);
+
+	})
 	.constant("jsonDataPage","http://localhost/sqltest.php")
 	.constant("mainpage","/index.html")
+	.controller("MasterController", function($scope){
+		$scope.cart = [];
+
+	})
 	.controller("ProductListController",function($scope,$http, $filter, mainpage, jsonDataPage){
 
 		$scope.model = null;
-		$scope.cart = [];
 		$scope.data = {};
 		$scope.mainpage = mainpage;
 		var selectedCategory = null;
 		
+		//gets the data from php file and turn to json 
 		$http.get(jsonDataPage)
 			.success(function(data){
 				$scope.model = data;

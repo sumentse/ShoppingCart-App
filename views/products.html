@@ -1,0 +1,16 @@
+<div id="category-selection">
+	<div class="categories" ng-class="getCategoryClass(row)" ng-repeat="row in model | orderBy:'Category' | unique:'Category'" ng-click="selectedCategory(row)">
+		<span>{{row}}</span>
+	</div>
+</div>
+<div id="products">
+	<div class="items" ng-repeat="row in model | filter:categoryFilterFn | limitTo:9">
+		<img ng-src="{{row.Image_Link}}">
+		<div class="item-name">{{row.Product_Name}}</div>
+		<div class="item-price">{{row.Price | currency}}</div>
+		<div class="add-cart" ng-click="addItem(row)">
+			<div class="cart-icon"><img src="assets/icons/cart.png"></div>
+			<span>Add to Cart</span>
+		</div>
+	</div>
+</div>
