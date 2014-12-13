@@ -3,159 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Shopping Cart App</title>
-	<base href="/AngularJS%20Apps/ShoppingCart%20App/">
-	<style>
-
-
-#main {
-	font-family: arial;
-	width: 890px;
-	margin: 0px auto;
-}
-
-header {
-	height: 40px;
-	background: #66ccff;
-	padding: 10px;
-	color: white;
-	margin-bottom: 10px;
-	text-align: center;
-	position: relative;
-}
-
-h1 {
-	margin: 0px;
-}
-
-#logo {
-	float: left;
-}
-
-#category-selection {
-	float:left;
-	width: 200px;
-	font-weight: bold;
-	font-size: 1.0em;
-	margin-right: 10px;
-}
-
-#products {
-	float:left;
-	width: 660px;
-}
-
-
-.categories {
-	background: lightgray;
-	margin: 2px;
-	padding: 10px 0px 10px 10px;
-	cursor: pointer;
-}
-
-.activeCategory {
-	background: #53c6fe;
-}
-
-.items{
-	width: 200px;
-	height: 300px;
-	margin: 10px;
-	float:left;
-	position: relative;
-	box-shadow: 3px 3px 4px #a0a0a0;
-}
-
-.item-name {
-	text-align: center;
-	font-size: 14px;
-	margin-top: 5px;
-}
-
-.item-price {
-	color: red;
-	font-size: 12px;
-	font-weight: bold;
-	text-align: center;
-	margin-top: 5px;
-}
-
-.add-cart {
-	margin: 10px 10px 0px 25px;
-	background: lightgray;
-	width: 150px;
-	position: relative;
-	height: 30px;
-	cursor: pointer;
-}
-
-.add-cart img {
-	width: 20px;
-	padding-left: 10px;
-	padding-right: 5px;
-	padding-top:5px;
-	padding-bottom:1px;
-}
-
-.add-cart span {
-	display: inline-block;
-	color: white;
-	font-weight: bold;
-	position: absolute;
-	right:13px;
-	top: 5px;
-}
-
-.checkout {
-	float: right;
-	position: relative;
-	width: 165px;
-	margin-top: -7px;
-	padding: 0px 10px;
-	cursor: pointer;
-
-}
-
-.checkout img{
-	width: 50px;
-}
-
-.checkout #counter{
-	top: 0px;
-	left: 35px;
-	position: absolute;
-	display: inline-block;
-	width: 25px;
-	color:red;
-}
-
-.not-exceed {
-	font-size: 19px;
-}
-
-.exceed {
-	font-size: 15px;
-}
-
-.checkout #checkout-label{
-	font-size: 20px;
-	padding-left: 5px;
-	font-weight: bold;
-}
-
-.cart-icon {
-	background: gray;
-	width: 40px;
-}
-
-.alert-danger {
-	background: #ff6866;
-	padding: 15px 15px;
-	border: solid red 2px;
-	border-radius: 15px;
-}
-
-
-	</style>
+	<base href="/ShoppingCart%20App/">
+	<link rel="stylesheet" href="css/main.css">
 	<script src="libs/angular.min.js"></script>
 	<script src="assets/js/angular-route.min.js"></script>
 </head>
@@ -163,12 +12,12 @@ h1 {
 	<div id="main" ng-controller="MasterController">
 		<header>
 			<div id="logo">
-				<h1>My Store</h1>
+				<a href="http://localhost/ShoppingCart%20App/index.html#/products"><h1>My Store</h1></a>
 			</div>
-			<div class="checkout">
+			<div class="checkout" ng-controller="ShoppingCartController">
 				<img src="assets/icons/emptycart.png" alt="">
-				<span id="counter" ng-class="getItemCountClass()">{{(cart.length > 99) ? "99+" : cart.length}}</span>
-				<span id="checkout-label"><a href="http://localhost/AngularJS%20Apps/ShoppingCart%20App/index.html#/checkout">Checkout</a></span>
+				<span id="counter" ng-class="getItemCountClass()">{{(itemCount() > 99) ? "99+" : itemCount()}}</span>
+				<span id="checkout-label"><a href="http://localhost/ShoppingCart%20App/index.html#/checkout">Checkout</a></span>
 			</div>
 		</header>	
 		<div class="alert-danger" ng-show="data.error">{{data.status}} Error! Request cannot be made. <b>Click <a href="{{mainpage}}">here</a> to try again</b></div>	
@@ -180,17 +29,17 @@ angular.module("shoppingApp",["ngRoute"])
 //will need to get rid of the routeprovider later on and the base on the header
 		
 		$routeProvider.when("/products",{
-			templateUrl:"/AngularJS%20Apps/ShoppingCart%20App/views/products.html",
+			templateUrl:"/ShoppingCart%20App/views/products.html",
 			controller:"ProductListController"
 		})		
 
 		$routeProvider.when("/checkout",{
-			templateUrl: "/AngularJS%20Apps/ShoppingCart%20App/views/checkout.html",
-			controller:"ProductListController"
+			templateUrl: "/ShoppingCart%20App/views/checkout.html",
+			controller:"CheckOutController"
 		});
 
 		$routeProvider.otherwise({
-			templateUrl:"/AngularJS%20Apps/ShoppingCart%20App/views/products.html",
+			templateUrl:"/ShoppingCart%20App/views/products.html",
 			controller:"ProductListController"
 		});
 
@@ -199,16 +48,21 @@ angular.module("shoppingApp",["ngRoute"])
 	})
 	.constant("jsonDataPage","http://localhost/sqltest.php")
 	.constant("mainpage","/index.html")
+	.constant("productListPageCount", 9)
 	.controller("MasterController", function($scope){
 		$scope.cart = [];
 
+
 	})
-	.controller("ProductListController",function($scope,$http, $filter, mainpage, jsonDataPage){
+	.controller("ProductListController",function($scope,$http, $filter, mainpage, jsonDataPage, productListPageCount){
 
 		$scope.model = null;
-		$scope.data = {};
-		$scope.mainpage = mainpage;
+		$scope.data = {}; //handles the error 
+		$scope.mainpage = mainpage; //the main page of the app
+		$scope.pageSize = productListPageCount; //get the page size for each pagination
+		$scope.selectedPage = 1; //controls pagination starting page
 		var selectedCategory = null;
+
 		
 		//gets the data from php file and turn to json 
 		$http.get(jsonDataPage)
@@ -233,16 +87,123 @@ angular.module("shoppingApp",["ngRoute"])
 		}
 
 		$scope.selectedCategory = function(newCategory) {
+			$scope.selectedPage = 1;
 			selectedCategory = newCategory;
 		};
 
+		//pages that are selected
+		$scope.selectPage = function(newPage) { 
+			if(newPage < 1)
+			{
+				return;
+			}
+			else if(newPage > $scope.totalPageCount)
+			{
+				return;
+			}
+			else {
+				$scope.selectedPage = newPage;
+				
+			}
+
+		}
+
+		//put the class name of active page
+		$scope.getPageClass = function(page) {
+			return $scope.selectedPage == page ? "activePage" : "";
+		}		
+
 		//adding items in the cart
 		$scope.addItem = function(item){
-			$scope.cart.push(item);
+			var addedToExistingItem = false;
+
+			for(var i=0, onCart = $scope.cart.length; i < onCart; i++)
+			{
+				if($scope.cart[i].Product_ID == item.Product_ID){
+					$scope.cart[i].Qt++;
+					addedToExistingItem = true;
+					break;
+				}
+			}
+
+			//if the item doesn't exist then add to cart
+			if(!addedToExistingItem){
+				$scope.cart.push({
+					"Qt":1,
+					"Product_Name":item.Product_Name, 
+					"Price":item.Price, 
+					"Image_Link":item.Image_Link,
+					"Product_ID":item.Product_ID
+				});
+				
+			}	
 		}
 
 	})
+	.controller("ShoppingCartController",function($scope){
+		//return the total item count in cart
+		$scope.itemCount = function () {
+		    var total = 0;
+		    for (var i = 0, onCart = $scope.cart.length; i < onCart; i++) {
+		        total += $scope.cart[i].Qt;
+		}
+		    return total;
+		}
+	})
+	.controller("CheckOutController",function($scope){
+		//remove item from checkout cart
+		var shippingCost = 4.99;
+		var minimalCost = 25;
+		var tax = 10.0;
+
+		//gets the tax
+		$scope.getTax = function(){
+			return tax;
+		}
+
+		//calculate the taxes
+		$scope.taxCost = function(){
+			return $scope.total() * (tax/100);
+		}
+
+		//checks if customer should get free shipping or not
+		$scope.ifFreeShipping = function(){
+			if($scope.total() > minimalCost)
+			{
+				return 0;
+			}
+			else{
+				return shippingCost;
+			}
+		}
+
+		//get total price of the shopping cart
+		$scope.total = function(){
+			var total = 0;
+			for(var i=0, onCart = $scope.cart.length; i < onCart; i++)
+			{
+				total += ($scope.cart[i].Price * $scope.cart[i].Qt);
+			}	
+			return total;
+		}	
+
+		$scope.removeItem = function(id)
+		{
+			for(var i = 0, onCart = $scope.cart.length; i < onCart; i++) {
+				
+				if ($scope.cart[i].Product_ID == id) {
+                    $scope.cart.splice(i, 1);
+                    break;
+				}
+			 }			
+		}
+		//goes to main page
+		$scope.gotoProducts = function(){
+			document.location.href = "http://localhost/ShoppingCart App/index.html#/products";
+		}
+	})
 	.filter("unique", function(){
+		//this filters unique keys
 		return function(data, propertyName) {
 			if(angular.isArray(data) && angular.isString(propertyName)){
 				var results = [];
@@ -260,7 +221,48 @@ angular.module("shoppingApp",["ngRoute"])
 				return data;
 			}
 		}
-	})	
+	})
+	.filter("range", function($filter){
+		//this will control how many items will be displayed
+		return function(data, page, size) {
+			if(angular.isArray(data) && angular.isNumber(page) && angular.isNumber(size)){
+				var start_index = (page - 1) * size;
+				if(data.length < start_index) 
+				{
+					return [];
+				} 
+				else {
+					return $filter('limitTo')(data.slice(start_index), size);
+				}
+			} 
+			else {
+				return data;
+			}
+		}
+	})
+	.filter("pageCount", function(){
+		//finds the total of items then divide them up into pieces
+		return function(data, size){
+			if(angular.isArray(data)) {
+				var result = [];
+				for(var i=0; i < Math.ceil(data.length / size); i++) {
+					result.push(i)
+				}
+
+				//don't show pagination when there is only 1 element in the array
+				if(result.length == 1)
+				{
+					return;
+				}
+				else {
+					return result;
+					
+				}	
+			} else {
+				return data;
+			}
+		}
+	});		
 	</script>
 </body>
 </html>

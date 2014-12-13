@@ -4,9 +4,14 @@
 	</div>
 </div>
 <div id="products">
-	<div class="items" ng-repeat="row in model | filter:categoryFilterFn | limitTo:9">
+	<div class="page-navigation">
+		
+		<a href="#" ng-repeat="row in model | filter:categoryFilterFn | pageCount:pageSize" ng-click="selectPage($index + 1)" ng-class="getPageClass($index + 1)">{{$index + 1}} </a>
+	
+	</div>
+	<div class="items" ng-repeat="row in model | filter:categoryFilterFn | range:selectedPage:pageSize">
 		<img ng-src="{{row.Image_Link}}">
-		<div class="item-name">{{row.Product_Name}}</div>
+		<div class="item-name">{{row.Product_Name | limitTo:25}}</div>
 		<div class="item-price">{{row.Price | currency}}</div>
 		<div class="add-cart" ng-click="addItem(row)">
 			<div class="cart-icon"><img src="assets/icons/cart.png"></div>

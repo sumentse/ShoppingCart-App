@@ -1,4 +1,53 @@
-<div>
-	<h2>Your Shopping Cart is empty</h2>
-	<p>Your shopping cart is here to help serve you. Continue shopping here on the <a href="http://localhost/AngularJS%20Apps/ShoppingCart%20App/index.html#/products">main page</a></p>
+<div ng-switch on="cart.length">
+	<div ng-switch-when="0">
+		<h2>Your Shopping Cart is empty</h2>
+		<p>Your shopping cart is here to help serve you. Continue shopping here on the <a href="http://localhost/ShoppingCart%20App/index.html#/products">main page</a></p>
+	</div>
+	<div id="cartSummary" ng-switch-default>
+		<h2>Your Cart</h2>
+
+		<table>
+			<thead>
+				<tr>
+					<th>Item</th>
+					<th></th>
+					<th>Quantity</th>
+					<th>Price</th>
+					<th>Subtotal</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in cart">
+					<td>
+						<img class="checkout-image" ng-src="{{item.Image_Link}}">
+					</td>
+					<td>{{item.Product_Name}}</td>
+					<td>{{item.Qt}}</td>
+					<td>{{item.Price | currency}}</td>
+					<td>{{(item.Qt * item.Price) | currency}}</td>
+					<td><div class="delete-button" ng-click="removeItem(item.Product_ID)">Delete</div></td>
+				</tr>
+				<tr class="align-right">
+					<td colspan="4">Tax ({{getTax()}}%):</td>
+					<td>{{taxCost() | number:2 | currency}}</td>
+					<td></td>
+				</tr>
+				<tr class="align-right">
+					<td colspan="4">Shipping Cost:</td>
+					<td>{{ifFreeShipping() | currency}}</td>
+					<td></td>
+				</tr>
+				<tr class="align-right">
+					<td colspan="4">Total:</td>
+					<td>{{total() + ifFreeShipping() + taxCost() | currency}}</td>
+					<td></td>
+				</tr>
+			</tbody>
+		</table>
+		<div id="checkout-buttons">
+			<button ng-click="gotoProducts()">Continue Shopping</button>
+			<button>Place Order</button>
+		</div>
+	</div>
 </div>
