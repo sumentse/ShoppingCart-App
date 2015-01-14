@@ -3,7 +3,6 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Shopping Cart App</title>
-	<base href="/ShoppingCart%20App/">
 	<link rel="stylesheet" href="css/main.css">
 	<script src="libs/angular.min.js"></script>
 	<script src="assets/js/angular-route.min.js"></script>
@@ -12,41 +11,35 @@
 	<div id="main" ng-controller="MasterController">
 		<header>
 			<div id="logo">
-				<a href="http://localhost/ShoppingCart%20App/index.html#/products"><h1>My Store</h1></a>
+				<a href="#"><h1>My Store</h1></a>
 			</div>
 			<div class="checkout" ng-controller="ShoppingCartController">
 				<img src="assets/icons/emptycart.png" alt="">
 				<span id="counter" ng-class="getItemCountClass()">{{(itemCount() > 99) ? "99+" : itemCount()}}</span>
-				<span id="checkout-label"><a href="http://localhost/ShoppingCart%20App/index.html#/checkout">Checkout</a></span>
+				<span id="checkout-label"><a href="#checkout">Checkout</a></span>
 			</div>
 		</header>	
 		<div class="alert-danger" ng-show="data.error">{{data.status}} Error! Request cannot be made. <b>Click <a href="{{mainpage}}">here</a> to try again</b></div>	
 		<ng-view />
 	</div>
 	<script>
-angular.module("shoppingApp",["ngRoute"])
-	.config(function($routeProvider, $locationProvider){
+angular.module("shoppingApp", ["ngRoute"])
+	.config(function($routeProvider){
 //will need to get rid of the routeprovider later on and the base on the header
 		
-		$routeProvider.when("/products",{
-			templateUrl:"/ShoppingCart%20App/views/products.html",
+		$routeProvider.when("/",{
+			templateUrl:"views/products.html",
 			controller:"ProductListController"
 		})		
 
 		$routeProvider.when("/checkout",{
-			templateUrl: "/ShoppingCart%20App/views/checkout.html",
+			templateUrl: "views/checkout.html",
 			controller:"CheckOutController"
 		});
-
-		$routeProvider.otherwise({
-			templateUrl:"/ShoppingCart%20App/views/products.html",
-			controller:"ProductListController"
-		});
-
-		$locationProvider.html5Mode(false);
+	
 
 	})
-	.constant("jsonDataPage","http://localhost/sqltest.php")
+	.constant("jsonDataPage","products.php")
 	.constant("mainpage","/index.html")
 	.constant("productListPageCount", 9)
 	.controller("MasterController", function($scope){
@@ -150,7 +143,7 @@ angular.module("shoppingApp",["ngRoute"])
 		    return total;
 		}
 	})
-	.controller("CheckOutController",function($scope){
+	.controller("CheckOutController",function($scope, $location){
 		//remove item from checkout cart
 		var shippingCost = 4.99;
 		var minimalCost = 25;
@@ -199,7 +192,7 @@ angular.module("shoppingApp",["ngRoute"])
 		}
 		//goes to main page
 		$scope.gotoProducts = function(){
-			document.location.href = "http://localhost/ShoppingCart App/index.html#/products";
+			$location.path("/");
 		}
 	})
 	.filter("unique", function(){

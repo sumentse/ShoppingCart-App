@@ -6,7 +6,7 @@
 <div id="products">
 	<div class="page-navigation">
 		
-		<a href="#" ng-repeat="row in model | filter:categoryFilterFn | pageCount:pageSize" ng-click="selectPage($index + 1)" ng-class="getPageClass($index + 1)">{{$index + 1}} </a>
+		<span ng-repeat="row in model | filter:categoryFilterFn | pageCount:pageSize" ng-click="selectPage($index + 1)" ng-class="getPageClass($index + 1)">{{$index + 1}} </span>
 	
 	</div>
 	<div class="items" ng-repeat="row in model | filter:categoryFilterFn | range:selectedPage:pageSize">
